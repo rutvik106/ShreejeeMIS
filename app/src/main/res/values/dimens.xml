@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="xsmall">12sp</dimen>
+    <dimen name="small">14sp</dimen>
+    <dimen name="medium">18sp</dimen>
+    <dimen name="large">22sp</dimen>
+    <dimen name="xlarge">32sp</dimen>
+    <dimen name="xxlarge">42sp</dimen>
+
+</resources>
