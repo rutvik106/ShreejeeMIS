@@ -18,4 +18,6 @@ public class IntentExtra {
     public static final String ADMIN_ID = "admin_id";
     public static final String FORM_NAME = "form_name";
     public static final String FORM_ID = "form_id";
+    public static final String FORM_TYPE_NAME = "form_type_name";
+    public static final String FORM_TYPE_ID = "form_type_id";
 }

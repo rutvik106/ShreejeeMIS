@@ -5,6 +5,7 @@ import java.util.List;
 
 import in.fusionbit.shreejeemis.App;
 import in.fusionbit.shreejeemis.apimodels.EfficiencyReport;
+import in.fusionbit.shreejeemis.apimodels.FormTypeReport;
 import in.fusionbit.shreejeemis.apimodels.Item;
 import in.fusionbit.shreejeemis.apimodels.SimpleResponse;
 import in.fusionbit.shreejeemis.apimodels.TaskHistory;
@@ -97,6 +98,20 @@ public class Api {
 
             Call<SimpleResponse> call = product.addForm("insert_form", formDate, remarks, formTypeId,
                     App.getCurrentUser().getUser().getSession_id());
+
+            call.enqueue(callback);
+
+            return call;
+        }
+
+        public static Call<List<FormTypeReport>> getFormReport(final String formDate,
+                                                               final String toDate,
+                                                               final int adminId,
+                                                               final int formTypeId,
+                                                               final Callback<List<FormTypeReport>> callback) {
+
+            Call<List<FormTypeReport>> call = product.getFormReport("form_report", formDate, toDate, adminId,
+                    formTypeId, App.getCurrentUser().getUser().getSession_id());
 
             call.enqueue(callback);
 

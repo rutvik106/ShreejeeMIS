@@ -3,6 +3,7 @@ package in.fusionbit.shreejeemis.api;
 import java.util.List;
 
 import in.fusionbit.shreejeemis.apimodels.EfficiencyReport;
+import in.fusionbit.shreejeemis.apimodels.FormTypeReport;
 import in.fusionbit.shreejeemis.apimodels.Item;
 import in.fusionbit.shreejeemis.apimodels.SimpleResponse;
 import in.fusionbit.shreejeemis.apimodels.TaskHistory;
@@ -91,6 +92,20 @@ public interface ApiInterface {
                                      @Field("remarks") String remarks,
                                      @Field("form_type_id") int formTypeId,
                                      @Field("session_id") String sessionId);
+
+        ////form_report
+        //from
+        //to
+        //admin_id
+        //form_type_id
+        @FormUrlEncoded
+        @POST("webservice.php")
+        Call<List<FormTypeReport>> getFormReport(@Field("method") String method,
+                                                 @Field("from") String fromDate,
+                                                 @Field("to") String toDate,
+                                                 @Field("admin_id") int adminId,
+                                                 @Field("form_type_id") int formTypeId,
+                                                 @Field("session_id") String sessionId);
 
     }
 

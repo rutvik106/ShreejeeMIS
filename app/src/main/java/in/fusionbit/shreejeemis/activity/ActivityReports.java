@@ -68,10 +68,24 @@ public class ActivityReports extends AppCompatActivity {
     LinearLayout llEfficiencyReport;
     @BindView(R.id.tv_selectUser2)
     TextView tvSelectUser2;
+    @BindView(R.id.et_fromDate2)
+    TextInputEditText etFromDate2;
+    @BindView(R.id.et_toDate2)
+    TextInputEditText etToDate2;
+    @BindView(R.id.tv_selectUser3)
+    TextView tvSelectUser3;
+    @BindView(R.id.spin_users3)
+    Spinner spinUsers3;
+    @BindView(R.id.ll_FormTypeReport)
+    LinearLayout llFormTypeReport;
+
 
     private int reportType = -1;
 
+    private int formTypeId = -1;
+
     private ArrayAdapter<UserModel.PeriodListBean> periodSpinnerAdapter;
+
     private ArrayAdapter<UserModel.UserListBean> userSpinnerAdapter;
 
     @Override
@@ -97,8 +111,120 @@ public class ActivityReports extends AppCompatActivity {
                 setActivityTitle("Monthly Efficiency Report");
                 setupViewForEfficiencyReport();
                 break;
+            case Constants.FORM_TYPE_REPORT:
+                llFormTypeReport.setVisibility(View.VISIBLE);
+                setActivityTitle(getIntent().getStringExtra(IntentExtra.FORM_TYPE_NAME) + " Report");
+                formTypeId = getIntent().getIntExtra(IntentExtra.FORM_TYPE_ID, -1);
+                setupViewForFormTypeReport();
+                break;
         }
 
+
+    }
+
+    private void setupViewForFormTypeReport() {
+
+        if (App.getCurrentUser().getUser().getAdmin_rights()
+                .contains(Constants.UserRights.CAN_GENERATE_REPORT_FOR_OTHER_USERS) ||
+                App.getCurrentUser().getUser().getAdmin_rights()
+                        .contains(Constants.UserRights.FULL)) {
+
+            tvSelectUser3.setVisibility(View.VISIBLE);
+            spinUsers3.setVisibility(View.VISIBLE);
+
+            userSpinnerAdapter = new ArrayAdapter<UserModel.UserListBean>(this,
+                    android.R.layout.simple_list_item_1, App.getCurrentUser().getUser_list()) {
+
+                @NonNull
+                @Override
+                public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                    if (convertView == null) {
+                        convertView = LayoutInflater.from(ActivityReports.this)
+                                .inflate(android.R.layout.simple_list_item_1, parent, false);
+                    }
+                    ((TextView) convertView.findViewById(android.R.id.text1)).setText(getItem(position).getAdmin_name());
+                    return convertView;
+                }
+
+                @Override
+                public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                    if (convertView == null) {
+                        convertView = LayoutInflater.from(ActivityReports.this)
+                                .inflate(android.R.layout.simple_list_item_1, parent, false);
+                    }
+                    ((TextView) convertView.findViewById(android.R.id.text1)).setText(getItem(position).getAdmin_name());
+                    return convertView;
+                }
+
+            };
+
+            spinUsers3.setAdapter(userSpinnerAdapter);
+        }
+
+        etFromDate2.setText("1/" + (fromDate.get(Calendar.MONTH) + 1) + "/" +
+                fromDate.get(Calendar.YEAR));
+
+        datePickerFromDate = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year,
+                                  int monthOfYear, int dayOfMonth) {
+                fromDate.set(Calendar.YEAR, year);
+                fromDate.set(Calendar.MONTH, monthOfYear);
+                fromDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                String date = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
+                etFromDate2.setText(date);
+            }
+        }, fromDate.get(Calendar.YEAR), fromDate.get(Calendar.MONTH),
+                fromDate.get(Calendar.DAY_OF_MONTH));
+
+        //datePickerFormDate.getDatePicker().setMinDate(Calendar.getInstance().getTimeInMillis());
+
+        etFromDate2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                datePickerFromDate.show();
+            }
+        });
+
+        etFromDate2.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean focus) {
+                if (focus) {
+                    datePickerFromDate.show();
+                }
+            }
+        });
+
+        datePickerToDate = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year,
+                                  int monthOfYear, int dayOfMonth) {
+                toDate.set(Calendar.YEAR, year);
+                toDate.set(Calendar.MONTH, monthOfYear);
+                toDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                String date = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
+                etToDate2.setText(date);
+            }
+        }, toDate.get(Calendar.YEAR), toDate.get(Calendar.MONTH),
+                toDate.get(Calendar.DAY_OF_MONTH));
+
+        //datePickerToDate.getDatePicker().setMinDate(Calendar.getInstance().getTimeInMillis());
+
+        etToDate2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                datePickerToDate.show();
+            }
+        });
+
+        etToDate2.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean focus) {
+                if (focus) {
+                    datePickerToDate.show();
+                }
+            }
+        });
 
     }
 
@@ -110,8 +236,6 @@ public class ActivityReports extends AppCompatActivity {
 
             tvSelectUser2.setVisibility(View.VISIBLE);
             spinUsers2.setVisibility(View.VISIBLE);
-
-            final List<CheckSpinnerModel> models = new ArrayList<>();
 
             userSpinnerAdapter = new ArrayAdapter<UserModel.UserListBean>(this,
                     android.R.layout.simple_list_item_1, App.getCurrentUser().getUser_list()) {
@@ -303,7 +427,21 @@ public class ActivityReports extends AppCompatActivity {
                         .getItem(spinUsers2.getSelectedItemPosition()).getAdmin_id();
                 ActivityShowReport.generateEfficiencyReport(this, period, adminId);
                 break;
+            case Constants.FORM_TYPE_REPORT:
+                final int adminId2 = userSpinnerAdapter
+                        .getItem(spinUsers3.getSelectedItemPosition()).getAdmin_id();
+                ActivityShowReport.generateFormTypeReport(this, etFromDate2.getText().toString(),
+                        etToDate2.getText().toString(), adminId2, formTypeId);
+                break;
         }
 
+    }
+
+    public static void startForActivityReport(Context context, String formTypeName, int formTypeId) {
+        Intent i = new Intent(context, ActivityReports.class);
+        i.putExtra(IntentExtra.REPORT_TYPE, Constants.FORM_TYPE_REPORT);
+        i.putExtra(IntentExtra.FORM_TYPE_NAME, formTypeName);
+        i.putExtra(IntentExtra.FORM_TYPE_ID, formTypeId);
+        context.startActivity(i);
     }
 }

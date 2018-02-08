@@ -18,11 +18,13 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import in.fusionbit.shreejeemis.App;
 import in.fusionbit.shreejeemis.Constants;
 import in.fusionbit.shreejeemis.R;
 import in.fusionbit.shreejeemis.adapter.RvItemAdapter;
 import in.fusionbit.shreejeemis.api.Api;
 import in.fusionbit.shreejeemis.apimodels.Item;
+import in.fusionbit.shreejeemis.apimodels.UserModel;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -79,6 +81,10 @@ public class ActivityHome extends ActivityBase {
             options.add("Task Completion");
             options.add("Monthly Efficiency");
 
+            for (UserModel.FormTypeListBean formType : App.getCurrentUser().getForm_type_list()) {
+                options.add(formType.getForm_type());
+            }
+
             new AlertDialog.Builder(this)
                     .setAdapter(new ArrayAdapter<String>(ActivityHome.this, android.R.layout.simple_list_item_1, options),
                             new DialogInterface.OnClickListener() {
@@ -93,6 +99,13 @@ public class ActivityHome extends ActivityBase {
                                             ActivityReports.start(ActivityHome.this, Constants.EFFICIENCY_REPORT);
                                             //Toast.makeText(ActivityHome.this, "Monthly Efficiency", Toast.LENGTH_SHORT).show();
                                             break;
+
+                                        default:
+                                            final UserModel.FormTypeListBean formType =
+                                                    App.getCurrentUser().getForm_type_list().get(index - 2);
+
+                                            ActivityReports.startForActivityReport(ActivityHome.this,
+                                                    formType.getForm_type(), formType.getForm_type_id());
                                     }
                                 }
                             })

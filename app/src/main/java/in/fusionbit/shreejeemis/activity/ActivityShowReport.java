@@ -17,9 +17,11 @@ import butterknife.ButterKnife;
 import in.fusionbit.shreejeemis.Constants;
 import in.fusionbit.shreejeemis.R;
 import in.fusionbit.shreejeemis.adapter.RvEfficiencyReport;
+import in.fusionbit.shreejeemis.adapter.RvFormTypeReportAdapter;
 import in.fusionbit.shreejeemis.adapter.RvTaskHistoryAdapter;
 import in.fusionbit.shreejeemis.api.Api;
 import in.fusionbit.shreejeemis.apimodels.EfficiencyReport;
+import in.fusionbit.shreejeemis.apimodels.FormTypeReport;
 import in.fusionbit.shreejeemis.apimodels.TaskHistory;
 import in.fusionbit.shreejeemis.util.IntentExtra;
 import okhttp3.ResponseBody;
@@ -67,8 +69,59 @@ public class ActivityShowReport extends ActivityBase {
 
                 getEfficiencyReport(period, adminId);
                 break;
+
+            case Constants.FORM_TYPE_REPORT:
+                String from2 = getIntent().getStringExtra(IntentExtra.FROM);
+                String to2 = getIntent().getStringExtra(IntentExtra.TO);
+                int adminId2 = getIntent().getIntExtra(IntentExtra.ADMIN_ID, -1);
+                int formTypeId = getIntent().getIntExtra(IntentExtra.FORM_TYPE_ID, -1);
+
+                getFormTypeReport(from2, to2, adminId2, formTypeId);
+                break;
         }
 
+
+    }
+
+    private void getFormTypeReport(String from, String to, int adminId, int formTypeId) {
+
+        showProgressDialog("Getting Report", "Please Wait...");
+
+        final RvFormTypeReportAdapter adapter = new RvFormTypeReportAdapter(this);
+
+        Api.Product.getFormReport(from, to, adminId, formTypeId,
+                new Callback<List<FormTypeReport>>() {
+                    @Override
+                    public void onResponse(Call<List<FormTypeReport>> call, Response<List<FormTypeReport>> response) {
+                        if (response.isSuccessful()) {
+                            if (response.body() != null) {
+                                for (FormTypeReport report : response.body()) {
+                                    adapter.addFormTypeReport(report);
+                                }
+                                rvTaskCompletionReport.setAdapter(adapter);
+                            }
+                            flNoReportFound.setVisibility(View.VISIBLE);
+                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                setTitle("Report (" + adapter.getItemCount() + ")");
+                            }
+                        });
+                        hideProgressDialog();
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<FormTypeReport>> call, Throwable t) {
+                        if (!call.isCanceled()) {
+                            Toast.makeText(ActivityShowReport.this, "Failed to get report.", Toast.LENGTH_SHORT).show();
+                        }
+                        if (adapter.getItemCount() == 0) {
+                            flNoReportFound.setVisibility(View.VISIBLE);
+                        }
+                        hideProgressDialog();
+                    }
+                });
 
     }
 
@@ -192,4 +245,14 @@ public class ActivityShowReport extends ActivityBase {
         context.startActivity(i);
     }
 
+    public static void generateFormTypeReport(Context context, String fromDate, String toDate,
+                                              int adminId, int formTypeId) {
+        Intent i = new Intent(context, ActivityShowReport.class);
+        i.putExtra(IntentExtra.FROM, fromDate);
+        i.putExtra(IntentExtra.TO, toDate);
+        i.putExtra(IntentExtra.ADMIN_ID, adminId);
+        i.putExtra(IntentExtra.FORM_TYPE_ID, formTypeId);
+        i.putExtra(IntentExtra.REPORT_TYPE, Constants.FORM_TYPE_REPORT);
+        context.startActivity(i);
+    }
 }
